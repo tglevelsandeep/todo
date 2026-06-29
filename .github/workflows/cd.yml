@@ -57,21 +57,32 @@ jobs:
           cache-to: type=gha,mode=max
 
   # ──────────────────────────────────────────────
-  # Deploy — Pull Images (Simulated Deployment)
+  # Deploy — Run on Remote Server (VPS)
   # ──────────────────────────────────────────────
   deploy:
-    name: Deploy — Pull Docker Images
+    name: Deploy to VPS
     needs: cd-docker
     runs-on: ubuntu-latest
     steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
+      - name: SSH into VPS and Deploy
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          username: ${{ env.DOCKER_HUB_USERNAME }}
-          password: ${{ env.DOCKER_HUB_TOKEN }}
-
-      - name: Pull Backend Image
-        run: docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:latest
-
-      - name: Pull Frontend Image
-        run: docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:latest
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          # Use password instead of key if that's how you login:
+          # password: ${{ secrets.SSH_PASSWORD }}
+          script: |
+            # 1. Navigate to the project directory (Update this path if it's different on your server)
+            cd ~/todo
+            
+            # 2. Pull the latest code (to get any updates to docker-compose.yml or nginx.conf)
+            git pull origin main
+            
+            # 3. Pull the latest built Docker images
+            docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:latest
+            docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:latest
+            
+            # 4. Stop old containers, rebuild the architecture, and start in detached mode
+            docker compose down
+            docker compose up -d
