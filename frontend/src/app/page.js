@@ -14,6 +14,7 @@ export default function Home() {
       router.replace("/login");
     }
   }, [router]);
+  
 
   return (
     <div className="loading-page">
