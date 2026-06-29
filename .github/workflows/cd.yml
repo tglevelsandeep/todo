@@ -25,8 +25,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -42,8 +42,8 @@ jobs:
           tags: |
             ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:latest
             ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
       - name: Build & Push Frontend Image
         uses: docker/build-push-action@v6
@@ -53,18 +53,18 @@ jobs:
           tags: |
             ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:latest
             ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # cache-from: type=gha
+          # cache-to: type=gha,mode=max
 
   # ──────────────────────────────────────────────
-  # Deploy — Run on Remote Server (VPS)
+  # Deploy — Run on Remote Server (EC2)
   # ──────────────────────────────────────────────
   deploy:
-    name: Deploy to VPS
+    name: Deploy to EC2
     needs: cd-docker
     runs-on: ubuntu-latest
     steps:
-      - name: SSH into VPS and Deploy
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SSH_HOST }}
@@ -73,16 +73,9 @@ jobs:
           # Use password instead of key if that's how you login:
           # password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            # 1. Navigate to the project directory (Update this path if it's different on your server)
-            cd ~/todo
-            
-            # 2. Pull the latest code (to get any updates to docker-compose.yml or nginx.conf)
-            git pull origin main
-            
-            # 3. Pull the latest built Docker images
+            script: |
             docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:latest
             docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:latest
-            
-            # 4. Stop old containers, rebuild the architecture, and start in detached mode
-            docker compose down
-            docker compose up -d
+
+            docker compose -f /home/ubuntu/docker-compose.yml down || true
+            docker compose -f /home/ubuntu/docker-compose.yml up -d
