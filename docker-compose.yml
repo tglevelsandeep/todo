@@ -1,4 +1,4 @@
-version: "3.8"
+
 
 services:
   backend:
@@ -15,7 +15,7 @@ services:
       JWT_EXPIRES_IN: 7d
 
   frontend:
-    image: YOUR_DOCKERHUB_USERNAME/todo-frontend:latest
+    image: tglevelsandeep/todo-frontend:latest
     container_name: todo-frontend
     restart: unless-stopped
     ports:
