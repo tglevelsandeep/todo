@@ -199,6 +199,7 @@ export default function DashboardPage() {
             {adding ? <span className="spinner"></span> : "+ Add"}
           </button>
         </form>
+        
 
         {/* Stats */}
         {todos.length > 0 && (
@@ -213,7 +214,7 @@ export default function DashboardPage() {
             </span>
           </div>
         )}
-        
+
 
         {/* Todo list */}
         {todos.length === 0 ? (
