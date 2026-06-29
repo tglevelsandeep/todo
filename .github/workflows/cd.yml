@@ -73,7 +73,6 @@ jobs:
           # Use password instead of key if that's how you login:
           # password: ${{ secrets.SSH_PASSWORD }}
           script: |
-            script: |
             docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-backend:latest
             docker pull ${{ env.DOCKER_HUB_USERNAME }}/todo-frontend:latest
 
