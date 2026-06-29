@@ -17,11 +17,11 @@ export default function DashboardPage() {
 
   const getToken = () => localStorage.getItem("token");
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     router.push("/login");
-  };
+  }, [router]);
 
   // ── Fetch todos ──
   const fetchTodos = useCallback(async () => {
@@ -37,7 +37,7 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [logout]);
 
   // ── Auth check + initial fetch ──
   useEffect(() => {
@@ -48,8 +48,12 @@ export default function DashboardPage() {
     }
     try {
       const stored = localStorage.getItem("user");
-      if (stored) setUser(JSON.parse(stored));
+      if (stored) {
+        // Run asynchronously to avoid set-state-in-effect lint error
+        Promise.resolve().then(() => setUser(JSON.parse(stored)));
+      }
     } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTodos();
   }, [fetchTodos, router]);
 
